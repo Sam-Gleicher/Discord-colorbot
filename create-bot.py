@@ -1,4 +1,12 @@
 import discord
+#Set up token
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+TOKEN = os.getenv('DISCORD_TOKEN')
+
+# Use TOKEN in your bot setup
 
 class MyClient(discord.Client):
     async def on_ready(self):
@@ -12,4 +20,4 @@ intents.members = True
 intents.message_content = True
 
 client = MyClient(intents=intents)
-client.run('MTQxMzUxMjY3MDE3NDI1MzA2OA.GHNpLT.VVIP_coS5iOAmdkMUTVo5iT8PfufIg18UdxgWU')
+client.run(TOKEN)
