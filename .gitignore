@@ -208,3 +208,4 @@ __marimo__/
 
 # dotenv environment variable files
 .env
+.csv
