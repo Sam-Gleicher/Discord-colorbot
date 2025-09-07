@@ -23,21 +23,42 @@ async def on_ready():
         await client.close()
         return
 
-    # Open CSV file
+    all_rows = []
+    max_colors = 0
+
+    # Fetch history
+    async for message in channel.history(limit=None, oldest_first=True):
+        if message.author == client.user:
+            continue  # skip bot’s own messages
+        if "," in message.content:
+            colors = [c.strip() for c in message.content.split(",")]
+
+            # Track max number of colors seen
+            if len(colors) > max_colors:
+                max_colors = len(colors)
+
+            # Format date and time
+            date = message.created_at.strftime("%Y-%m-%d")
+            time = message.created_at.strftime("%H:%M")
+
+            row = [message.author.name, date, time] + colors
+            all_rows.append(row)
+
+    # Write to CSV
     with open("colors.csv", "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(["Date", "Sender", "Colors"])
 
-        # Fetch history (limit=None means all available)
-        async for message in channel.history(limit=None, oldest_first=True):
-            if message.author == client.user:
-                continue  # skip bot messages
-            if "," in message.content:
-                colors = [c.strip() for c in message.content.split(",")]
-                writer.writerow([message.created_at, message.author.name, ", ".join(colors)])
+        # Header: Sender, Date, Time, Color 1...Color N
+        header = ["Sender", "Date", "Time"] + [f"Color {i+1}" for i in range(max_colors)]
+        writer.writerow(header)
+
+        # Pad shorter color lists with blanks
+        for row in all_rows:
+            row += [""] * (max_colors - (len(row) - 3))
+            writer.writerow(row)
 
     print("💾 Finished writing colors.csv")
-    await client.close()  # Exit after one run
+    await client.close()
 
 
 client.run(TOKEN)
