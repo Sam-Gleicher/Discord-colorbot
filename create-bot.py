@@ -6,10 +6,7 @@ import csv
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
-
-# Use TOKEN in your bot setup
-
-TARGET_CHANNEL_ID = 1413469256317669497
+TARGET_CHANNEL_ID = int(os.getenv('TARGET_CHANNEL_ID'))
 
 intents = discord.Intents.default()
 intents.members = True
