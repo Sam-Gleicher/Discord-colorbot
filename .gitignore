@@ -212,3 +212,4 @@ colors.csv
 .DS_Store
 crosswalk.csv
 colors_names.csv
+*.png
