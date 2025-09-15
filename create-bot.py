@@ -3,6 +3,9 @@ import discord
 from dotenv import load_dotenv
 import os
 import csv
+import reader 
+import re
+import datetime  
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -60,5 +63,36 @@ async def on_ready():
     print("💾 Finished writing colors.csv")
     await client.close()
 
+    # Load crosswalk
+    crosswalk = {}
+    with open("crosswalk.csv", newline="") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            username = row["Username"].strip()
+            real_name = row["Real Name"].strip()
+            location = row["Location"].strip()
+            crosswalk[username] = [real_name, location]
+
+    # Write to CSV
+    with open("colors_names.csv", "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+
+        # Header: Username, Real Name, Location, Date, Time, Color 1...Color N
+        header = ["Username", "Real Name", "Location", "Date", "Time"] + [
+            f"Color {i+1}" for i in range(max_colors)
+        ]
+        writer.writerow(header)
+
+        for row in all_rows:
+            username = row[0]
+            date = row[1]
+            time = row[2]
+            colors = row[3:]
+            real_name, location = crosswalk.get(username, ("", ""))
+            out_row = [username, real_name, location, date, time] + colors
+            out_row += [""] * (max_colors - len(colors))
+            writer.writerow(out_row)
+            
+    print("💾 Finished writing colors_names.csv")
 
 client.run(TOKEN)
