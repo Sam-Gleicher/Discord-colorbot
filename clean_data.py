@@ -84,13 +84,15 @@ with open("colors_names.csv", "w", newline="", encoding="utf-8") as f:
                 avg_temp, avg_cloud = "", ""
         else:
             avg_temp, avg_cloud = "", ""
-        # Set missing weather data to "N/A"
-        avg_temp = avg_temp if avg_temp != "" else "N/A"
-        avg_cloud = avg_cloud if avg_cloud != "" else "N/A"
+        # Set missing weather data to "NA"
+        avg_temp = avg_temp if avg_temp != "" else "NA"
+        avg_cloud = avg_cloud if avg_cloud != "" else "NA"
+        # Convert all colors to lowercase
+        color_cells = [c.lower() for c in colors]
+        color_cells += [""] * (max_colors - len(color_cells))
 
 
-        out_row = [username, real_name, location, local_date, local_time, timezone, avg_temp, avg_cloud] + colors
-        out_row += [""] * (max_colors - len(colors))
-        writer.writerow(out_row)        
+        out_row = [username, real_name, location, local_date, local_time, timezone, avg_temp, avg_cloud] + color_cells
+        writer.writerow(out_row)
 
 print("💾 Finished writing colors_names.csv")
