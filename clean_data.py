@@ -7,6 +7,7 @@ all_rows = []
 max_colors = 0
 with open("colors.csv", newline="", encoding="utf-8") as f:
     reader = csv.reader(f)
+    next(reader) # skip header
     for row in reader:
         all_rows.append(row)
         max_colors = max(max_colors, len(row) - 3)
@@ -41,7 +42,7 @@ with open("colors_names.csv", "w", newline="", encoding="utf-8") as f:
         real_name, location, timezone = crosswalk.get(username, ("", "", "UTC"))
             
         # Convert UTC date/time to sender's local timezone
-        utc_dt = datetime.datetime.strptime(f"{date} {time}", "%Y-%m-%d %H:%M")
+        utc_dt = datetime.datetime.strptime(f"{date}, {time}", "%Y-%m-%d, %H:%M")
         utc_dt = utc_dt.replace(tzinfo=zoneinfo.ZoneInfo("UTC"))
         try:
             local_dt = utc_dt.astimezone(zoneinfo.ZoneInfo(timezone))
