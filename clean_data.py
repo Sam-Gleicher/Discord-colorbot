@@ -1,6 +1,29 @@
 import csv
 import datetime
 import zoneinfo
+import requests
+# define a "get_weather" function 
+def get_weather(lat, lon, date):
+    url = (
+        f"https://archive-api.open-meteo.com/v1/archive?"
+        f"latitude={lat}&longitude={lon}&start_date={date}&end_date={date}"
+        f"&hourly=temperature_2m,cloudcover"
+    )
+    response = requests.get(url)
+    if response.status_code != 200:
+        return "", ""
+    data = response.json()
+    try:
+        temps = data['hourly']['temperature_2m']
+        clouds = data['hourly']['cloudcover']
+        if temps and clouds:
+            avg_temp = round(sum(temps) / len(temps), 1)
+            avg_cloud = round(sum(clouds) / len(clouds), 1)
+            return avg_temp, avg_cloud
+        else:
+            return "", ""
+    except Exception:
+        return "", ""
 
 # Load raw data
 all_rows = []
@@ -22,14 +45,15 @@ with open("crosswalk.csv", newline="") as f:
         real_name = row["Real Name"].strip()
         location = row["Location"].strip()
         timezone = row.get("Timezone", "UTC").strip()
-        crosswalk[username] = [real_name, location, timezone]        
+        latitude = float(row.get("Latitude", "0").strip())
+        longitude = float(row.get("Longitude", "0").strip())
+        crosswalk[username] = [real_name, location, timezone, latitude, longitude]
+      
 
 # Write to CSV
 with open("colors_names.csv", "w", newline="", encoding="utf-8") as f:
     writer = csv.writer(f)
-
-    # Header: Username, Real Name, Location, Date, Time, Color 1...Color N
-    header = ["Username", "Real Name", "Location", "Date", "Time", "Timezone"] + [
+    header = ["Username", "Real Name", "Location", "Date", "Time", "Timezone", "Avg Temp (C)", "Avg Cloud (%)"] + [
         f"Color {i+1}" for i in range(max_colors)
     ]
     writer.writerow(header)
@@ -39,7 +63,7 @@ with open("colors_names.csv", "w", newline="", encoding="utf-8") as f:
         date = row[1]
         time = row[2]
         colors = row[3:]
-        real_name, location, timezone = crosswalk.get(username, ("", "", "UTC"))
+        real_name, location, timezone, latitude, longitude = crosswalk.get(username, ("", "", "UTC", 0.0, 0.0))
             
         # Convert UTC date/time to sender's local timezone
         utc_dt = datetime.datetime.strptime(f"{date}, {time}", "%Y-%m-%d, %H:%M")
@@ -51,8 +75,22 @@ with open("colors_names.csv", "w", newline="", encoding="utf-8") as f:
         except Exception:
             local_date = date
             local_time = time
-        out_row = [username, real_name, location, local_date, local_time, timezone] + colors
+
+        # Get weather data for each entry (if location is provided)            
+        if latitude != 0.0 and longitude != 0.0:
+            try:
+                avg_temp, avg_cloud = get_weather(latitude, longitude, local_date)
+            except Exception:
+                avg_temp, avg_cloud = "", ""
+        else:
+            avg_temp, avg_cloud = "", ""
+        # Set missing weather data to "N/A"
+        avg_temp = avg_temp if avg_temp != "" else "N/A"
+        avg_cloud = avg_cloud if avg_cloud != "" else "N/A"
+
+
+        out_row = [username, real_name, location, local_date, local_time, timezone, avg_temp, avg_cloud] + colors
         out_row += [""] * (max_colors - len(colors))
-        writer.writerow(out_row)
-            
+        writer.writerow(out_row)        
+
 print("💾 Finished writing colors_names.csv")
