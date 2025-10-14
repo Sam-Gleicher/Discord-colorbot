@@ -62,3 +62,23 @@ if not color1_counts_cloudy.empty:
     print("Graph 4 saved as color1_cloudy_days.png")
 else:
     print("No data for cloudy days (>=80% cloud cover).")
+
+# Average number of colors by individual
+color_columns = [col for col in df.columns if col.startswith('Color')]
+
+# Count non-empty colors for each row
+df['Color_Count'] = df[color_columns].apply(lambda row: row.notna().sum(), axis=1)
+
+# Calculate average colors per person
+avg_colors_by_person = df.groupby('Real Name')['Color_Count'].mean().sort_values(ascending=False)
+
+plt.figure(figsize=(12, 6))
+avg_colors_by_person.plot(kind='bar')
+plt.xlabel('Real Name')
+plt.ylabel('Average Number of Colors')
+plt.title('Average Number of Colors Reported by Individual')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig("avg_colors_by_person.png")
+plt.show()
+print("Graph 5 saved as avg_colors_by_person.png")
