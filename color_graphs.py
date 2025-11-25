@@ -82,3 +82,18 @@ plt.tight_layout()
 plt.savefig("avg_colors_by_person.png")
 plt.show()
 print("Graph 5 saved as avg_colors_by_person.png")
+
+# Max colors by individual
+max_colors_by_person = df.groupby('Real Name')['Color_Count'].max().sort_values(
+    ascending=False
+)   
+plt.figure(figsize=(12, 6))
+max_colors_by_person.plot(kind='bar')
+plt.xlabel('Real Name')
+plt.ylabel('Maximum Number of Colors')
+plt.title('Maximum Number of Colors Reported by Individual')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig("max_colors_by_person.png")
+plt.show()
+print("Graph 6 saved as max_colors_by_person.png")
